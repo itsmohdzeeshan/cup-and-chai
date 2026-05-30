@@ -1,11 +1,10 @@
 "use server"
 
-import React from 'react'
 import Razorpay from 'razorpay'
 import User from '@/models/User'
 import Payment from '@/models/Payment'
 import connectDB from '@/db/connectDB'
-
+import bcrypt from "bcrypt"
 
 export const initiate = async (amount, to_username, paymentForm) => {
 
@@ -36,7 +35,7 @@ export const initiate = async (amount, to_username, paymentForm) => {
 
 // export const fetchUser = async (username) => {
 //     await connectDB()
-//     let user = await User.findOne({username}).lean()
+//     let u = await User.findOne({username}).lean()
 //     // let user = u.toObject({ flattenObjectIds: true })
 //     return user
 // }
@@ -50,7 +49,8 @@ export const initiate = async (amount, to_username, paymentForm) => {
 export const fetchUser = async (username) => {
     await connectDB()
 
-    let user = await User.findOne({ username }).lean()
+    // You should add .select("-password") is order to exclude the password field from the query
+    let user = await User.findOne({ username }).select("-password").lean()
 
     if (!user) return null
 
@@ -82,6 +82,11 @@ export const updateProfile = async (formData, oldUsername) => {
 
     const { email, ...rest } = formData
 
+    // Now we hashed the user password
+    if (rest.password) {
+        rest.password = await bcrypt.hash(rest.password, 10)
+    }
+
     // below check is used to determine if user changed his username or not 
     if (formData.username !== oldUsername) { // it means user changed his username
         // now we update 
@@ -92,9 +97,7 @@ export const updateProfile = async (formData, oldUsername) => {
             return { error: "Username is already been taken" }
         }
 
-
         await User.updateOne({ email: email }, { $set: rest })
-
         await Payment.updateMany({ to_user: oldUsername }, { to_user: formData.username })
 
     }
@@ -104,5 +107,83 @@ export const updateProfile = async (formData, oldUsername) => {
 
     }
 
+}
 
+export const registerUser = async (formdata) => {
+    await connectDB()
+    const { email, password } = formdata;
+
+    try {
+
+        // check for already exixting email in database 
+        const user = await User.findOne({ email: email })
+        if (user) {
+            return { error: "An account with this email already exists. Kindly continue login" }
+        }
+
+        // const hashedPassword = await bcrypt.hash(password, 10)
+
+        const generatedUsername = email.split("@")[0]
+
+        await User.create({
+            email: email,
+            password: password,
+            username: generatedUsername,
+        })
+
+        return { success: true }
+
+    } catch (err) {
+        return { error: "Internal Server error. Please try again", err }
+    }
+}
+
+export const setPassword = async (email, password) => {
+    await connectDB()
+
+    const user = await User.findOne({ email: email })
+
+    if (!user) {
+        return { error: "User not found" }
+    }
+
+    if (user.password) {
+        return { error: "Password is already set" }
+    }
+
+    user.password = password
+    await user.save()
+
+    return { success: true }
+}
+
+export const changePassword = async (email, oldPassword, newPassword) => {
+    await connectDB()
+
+    const user = await User.findOne({ email })
+
+    if (!user) {
+        return { error: "User not found" }
+    }
+
+    if (!oldPassword || !newPassword) {
+        return { error: "All password fields are required" }
+    }
+
+    if(oldPassword === newPassword){
+        return {error: "Old password and new password cannot be same"}
+    }
+
+    if (!user.password) {
+        return { error: "User password is not set. First set the password before changing it" }
+    }
+
+    if (user.password !== oldPassword) {
+        return { error: "Old password is incorrect" }
+    }
+
+    user.password = newPassword
+    await user.save()
+
+    return { success: true }
 }

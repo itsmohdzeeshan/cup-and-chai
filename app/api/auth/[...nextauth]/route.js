@@ -2,6 +2,8 @@ import mongoose from 'mongoose'
 import NextAuth from 'next-auth'
 import GitHubProvider from 'next-auth/providers/github'
 import GoogleProvider from 'next-auth/providers/google'
+import CredentialsProvider from "next-auth/providers/credentials"
+import bcrypt from "bcrypt"
 
 // imports regarding databases
 import User from '@/models/User'
@@ -26,6 +28,42 @@ export const authoptions = NextAuth({
                     response_type: "code"
                 }
             }
+        }),
+
+        CredentialsProvider({
+            name: "credentials",
+
+            credentials: {
+                email: { label: "Email", type: "email" },
+                password: { label: "Password", type: "password" }
+            },
+
+            async authorize(credentials) {
+
+                await connectDB()
+
+                const user = await User.findOne({
+                    email: credentials.email
+                })
+
+                if (!user) {
+                    throw new Error("User not found. Sign up")
+                }
+
+                // const isMatch = await bcrypt.compare(credentials.password, user.password)
+                // if (!isMatch) {
+                //     throw new Error("Password is Incorrect")
+                // }
+
+                if (!user.password) {
+                    throw new Error("Use Google/Github login")
+                }
+
+                return {
+                    email: user.email,
+                    name: user.username
+                }
+            }
         })
 
     ],
@@ -48,10 +86,10 @@ export const authoptions = NextAuth({
                 }
                 return true
             } else if (account.provider == "google") {
+
                 await connectDB()
 
                 let currentUser = await User.findOne({ email: user.email })
-                console.log("Current user: ", currentUser)
                 if (!currentUser) {
                     //create a new user
                     currentUser = await new User({
@@ -61,15 +99,18 @@ export const authoptions = NextAuth({
                     });
                 }
 
-                console.log("refresh token: ", account.refresh_token)
+
                 if (account.refresh_token) {
                     currentUser.googleRefreshToken = account.refresh_token
+                    await currentUser.save() // save only if token is updated
                 }
 
-                await currentUser.save()
-
+                return true;
+            } else if (account.provider === "credentials") {
+                // They passed the password check in authorize(), so allow them through!
                 return true;
             }
+            return false;
         },
 
         async session({ session, user, token }) {
@@ -77,6 +118,7 @@ export const authoptions = NextAuth({
             await connectDB()
             const dbUser = await User.findOne({ email: session.user.email })
             session.user.name = dbUser.username
+            session.user.hasPassword = !!dbUser.password
             return session
         },
     }

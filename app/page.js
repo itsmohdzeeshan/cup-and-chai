@@ -13,7 +13,7 @@ export default function Home() {
         <div className="absolute w-[400px] h-[400px] bg-blue-500 opacity-20 blur-3xl rounded-full bottom-[-100px] right-[-100px]"></div>
 
         <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight">
-          Get me a <span className="text-purple-400">Chai ☕</span>
+          Get me a Cup Of <span className="text-purple-400">Chai ☕</span>
         </h1>
 
         <p className="mt-6 text-sm sm:text-base md:text-lg text-gray-300 max-w-xl">
