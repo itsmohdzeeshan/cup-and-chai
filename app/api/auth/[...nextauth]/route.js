@@ -55,9 +55,15 @@ export const authoptions = NextAuth({
                 //     throw new Error("Password is Incorrect")
                 // }
 
+
                 if (!user.password) {
                     throw new Error("Use Google/Github login")
                 }
+
+                if (credentials.password !== user.password) {
+                    throw new Error("Password is Incorrect")
+                }
+
 
                 return {
                     email: user.email,

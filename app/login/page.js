@@ -13,6 +13,7 @@ const page = () => {
     const [password, setPassword] = useState("")
     const [error, setError] = useState("");
     const [signUp, setsignUp] = useState(false)
+    const [isSubmitting, setIsSubmitting] = useState(false)
 
     useEffect(() => {
         document.title = "Login - Get me a chai"
@@ -58,16 +59,23 @@ const page = () => {
         // Now we have to checks for validation
         if (!basicValidationChecks()) return;
 
-        const res = await signIn("credentials", {
-            email,
-            password,
-            redirect: false
-        })
+        setIsSubmitting(true)
 
-        if (res.ok) {
-            router.push("/dashboard")
-        } else {
-            setError(res.error || "Something went wrong. Please try again.")
+        try {
+
+            const res = await signIn("credentials", {
+                email,
+                password,
+                redirect: false
+            })
+
+            if (res.ok) {
+                router.push("/dashboard")
+            } else {
+                setError(res.error || "Something went wrong. Please try again.")
+            }
+        } finally {
+            setIsSubmitting(false)
         }
     }
 
@@ -77,8 +85,12 @@ const page = () => {
 
         if (!basicValidationChecks()) return;
 
+        setIsSubmitting(true)
+
         try {
+
             const res = await registerUser({ email, password })
+
             if (res?.error) {
                 setError(res.error)
                 return
@@ -96,8 +108,8 @@ const page = () => {
                 router.push("/dashboard");
             }
 
-        } catch (error) {
-            setError("Something went wrong. Try again later")
+        } finally {
+            setIsSubmitting(false)
         }
     }
 
@@ -234,7 +246,7 @@ const page = () => {
         //             </div>
         //         </div>
 
-        <div className=' container mx-auto px-6 pt-10 text-white flex flex-col items-center text-center justify-center'>
+        <div className=' container mx-auto px-6 pt-10 pb-10 text-white flex flex-col items-center text-center justify-center'>
 
             {/* <div className="w-full max-w-md bg-white border border-gray-200 rounded-xl p-6 shadow-sm"> */}
             <div className="w-full max-w-md bg-slate-900/70 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-xl">
@@ -294,22 +306,29 @@ const page = () => {
                 )}
 
 
-                {signUp && (
+                {signUp ? (
                     <button
                         onClick={handleSignUp}
-                        className="w-full bg-gradient-to-r from-purple-600 to-blue-500 text-white py-2 md:py-3 rounded-lg font-medium transition hover:cursor-pointer"
+                        disabled={isSubmitting}
+                        className="w-full bg-gradient-to-r from-purple-600 to-blue-500 text-white py-2 md:py-3 rounded-lg font-medium transition flex justify-center items-center disabled:opacity-70 hover:cursor-pointer"
                     >
-                        Sign Up
+                        {isSubmitting ? (
+                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        ) : (
+                            "Sign Up"
+                        )}
                     </button>
-                )
-                }
-
-                {!signUp && (
+                ) : (
                     <button
                         onClick={handleLogin}
-                        className="w-full bg-gradient-to-r from-purple-600 to-blue-500 text-white py-2 md:py-3 rounded-lg font-medium transition hover:cursor-pointer"
+                        disabled={isSubmitting}
+                        className="w-full bg-gradient-to-r from-purple-600 to-blue-500 text-white py-2 md:py-3 rounded-lg font-medium transition flex justify-center items-center disabled:opacity-70 hover:cursor-pointer"
                     >
-                        Login
+                        {isSubmitting ? (
+                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        ) : (
+                            "Login"
+                        )}
                     </button>
                 )}
 
