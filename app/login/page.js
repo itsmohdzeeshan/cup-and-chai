@@ -16,7 +16,7 @@ const page = () => {
     const [isSubmitting, setIsSubmitting] = useState(false)
 
     useEffect(() => {
-        document.title = "Login - Get me a chai"
+        document.title = "Login - Get me a cup of chai"
         if (session) {
             // BAD PRACTICE => to use react context inside a condition
             // const router = useRouter()

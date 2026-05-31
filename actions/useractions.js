@@ -150,6 +150,13 @@ export const setPassword = async (email, password) => {
     if (user.password) {
         return { error: "Password is already set" }
     }
+    console.log(user.provider)
+    console.log(Array.isArray(user.provider))
+    console.log(typeof user.provider)
+
+    if (!user.provider.includes("credentials")) {
+        user.provider.push("credentials")
+    }
 
     user.password = password
     await user.save()
@@ -170,8 +177,8 @@ export const changePassword = async (email, oldPassword, newPassword) => {
         return { error: "All password fields are required" }
     }
 
-    if(oldPassword === newPassword){
-        return {error: "Old password and new password cannot be same"}
+    if (oldPassword === newPassword) {
+        return { error: "Old password and new password cannot be same" }
     }
 
     if (!user.password) {

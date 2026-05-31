@@ -85,13 +85,17 @@ export const authoptions = NextAuth({
                     // create a new user
                     const newUser = await new User({
                         email: user.email,
-                        username: user.email.split("@")[0]
+                        username: user.email.split("@")[0],
+                        provider: "github"
                     })
 
                     await newUser.save()
                 }
                 return true
-            } else if (account.provider == "google") {
+            }
+
+
+            else if (account.provider == "google") {
 
                 await connectDB()
 
@@ -101,7 +105,9 @@ export const authoptions = NextAuth({
                     currentUser = await new User({
                         email: user.email,
                         username: user.email.split("@")[0],
-                        profilepic: user.image
+                        profilepic: user.image,
+                        provider: "google",
+                        googleId: account.providerAccountId
                     });
                 }
 
@@ -114,6 +120,7 @@ export const authoptions = NextAuth({
                 return true;
             } else if (account.provider === "credentials") {
                 // They passed the password check in authorize(), so allow them through!
+                
                 return true;
             }
             return false;

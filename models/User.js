@@ -3,7 +3,7 @@ import { Schema, model } from "mongoose";
 
 const UserSchema = new Schema({
     name: { type: String },
-    email: { type: String, required: true, unique: true},
+    email: { type: String, required: true, unique: true },
     username: { type: String, unique: true },
     password: { type: String },
     profilepic: { type: String },
@@ -15,11 +15,11 @@ const UserSchema = new Schema({
     googleRefreshToken: { type: String, select: false },
     googleAccessToken: { type: String, select: false },
 
-    provider: {
+    provider: [{
         type: String,
         enum: ["credentials", "google", "github"],
         default: "credentials"
-    },
+    }],
 
     googleId: { type: String },
 

@@ -54,6 +54,10 @@ const Dashboard = () => {
 
     }, [status])
 
+    // if (status === 'loading') {
+    //     return null
+    // }
+
     const handleSubmit = async () => {
 
         if (JSON.stringify(originalForm) === JSON.stringify(form)) {
