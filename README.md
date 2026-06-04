@@ -1,4 +1,4 @@
-# ☕ GetMeAChai
+# ☕ CupAndChai
 
 A full-stack creator support platform inspired by Patreon, allowing users to support creators through secure one-time and recurring payments.
 
